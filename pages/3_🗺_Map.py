@@ -11,18 +11,20 @@ from folium.plugins import GroupedLayerControl, BeautifyIcon, AntPath
 
 m = folium.Map(location = [45.5,6], tiles = "cartodbpositron", zoom_start = 5)
 
-dainamic_geo = pd.read_csv("../data/out/dainamic1986_geo.csv")
-daiclic_geo = pd.read_csv("../data/out/daiclic_geo.csv")
-daiclic2_geo = pd.read_csv("../data/out/newdaiclic_geo.csv")
-revendeurs_geo = pd.read_csv("../data/out/revendeurs_geo.csv")
+dainamic_geo = pd.read_csv("./data/out/dainamic1986_geo.csv")
+daiclic_geo = pd.read_csv("./data/out/daiclic_geo.csv")
+daiclic2_geo = pd.read_csv("./data/out/newdaiclic_geo.csv")
+revendeurs_geo = pd.read_csv("./data/out/revendeurs_geo.csv")
 
 club_dict = {
     "BX": [44.841225, -0.5800364],
     "DCA":[48.8588897, 2.320041],
-    "IDC Liège" :[],
-    "IDC Charleroi":[],
-    "D.A.I.C":[],
+    "IDC Liège" :[50.640108, 5.5708564],
+    "CARO":[50.4062694, 4.442313],
+    "DAIC":[50.8113254, 4.3382402],
 }
+
+st.write(st.session_state.df)
 
 def addtomap(data,name,color="red",show = False, img="",date ="", icon = "info-sign")  :
     name = ""
@@ -32,18 +34,21 @@ def addtomap(data,name,color="red",show = False, img="",date ="", icon = "info-s
         if pd.isna(row["lat"]) == False and pd.isna(row["lng"]) == False:
             if 35 > row["lng"] > -20 :
                 boutique = ""
-                club = ""
+                clubs = []
                 if "Boutique" in data.columns :
                     boutique = row["Boutique"]
                 if "Club" in data.columns:
-                    club = row["Club"]
+                    if "/" in str(row["Club"]):
+                        clubs = row["Club"].split("/")
+                    else:
+                        clubs.append(row["Club"])
 
                 city = row["Ville"]
                 html=f"""
                 <img src="{img}"> <br>
                 <b>{date} </b><br>
                 {city} <br>
-                {boutique}{club}
+                {boutique}{clubs}
                 """
                 iframe = folium.IFrame(html)
                 popup = folium.Popup(iframe, min_width=200, max_width=300)
@@ -54,9 +59,10 @@ def addtomap(data,name,color="red",show = False, img="",date ="", icon = "info-s
                 icon=BeautifyIcon(border_color=color, prefix="fa", icon=icon)
                 ).add_to(feature_group)
 
-                if club in club_dict.keys():
-                    club_loc = club_dict[club]
-                    AntPath([location,club_loc], hardwareAccelerated=True, delay=800).add_to(feature_group)
+                for club in clubs:
+                    if club in club_dict.keys():
+                        club_loc = club_dict[club]
+                        AntPath([location,club_loc], hardwareAccelerated=True, delay=800).add_to(feature_group)
 
     return feature_group
 
