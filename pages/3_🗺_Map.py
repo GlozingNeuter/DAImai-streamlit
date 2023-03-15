@@ -6,15 +6,12 @@ import pandas as pd
 import folium
 from folium.plugins import GroupedLayerControl, BeautifyIcon, AntPath
 
-
-
-
-m = folium.Map(location = [45.5,6], tiles = "cartodbpositron", zoom_start = 5)
-
-dainamic_geo = pd.read_csv("./data/out/dainamic1986_geo.csv")
-daiclic_geo = pd.read_csv("./data/out/daiclic_geo.csv")
-daiclic2_geo = pd.read_csv("./data/out/newdaiclic_geo.csv")
-revendeurs_geo = pd.read_csv("./data/out/revendeurs_geo.csv")
+icon_dict = {
+    "Liste de lecteurs": "user",
+    "Liste de magasins":"shop",
+    "Liste de clubs":"people-roof",
+    "Autre":"circle",
+}
 
 club_dict = {
     "BX": [44.841225, -0.5800364],
@@ -23,16 +20,14 @@ club_dict = {
     "CARO":[50.4062694, 4.442313],
     "DAIC":[50.8113254, 4.3382402],
 }
+df = st.session_state.df
 
-st.write(st.session_state.df)
 
-def addtomap(data,name,color="red",show = False, img="",date ="", icon = "info-sign")  :
-    name = ""
-    city = ""
-    feature_group = folium.FeatureGroup(name=name, show=show)
+def map_df(data):
+    m = folium.Map(location = [45.5,6], tiles = "cartodbpositron", zoom_start = 5)
     for index, row in data.iterrows():
         if pd.isna(row["lat"]) == False and pd.isna(row["lng"]) == False:
-            if 35 > row["lng"] > -20 :
+            if 35 > int(row["lng"]) > -20 : # Solution temporaire pour éliminer les erreurs de géocodage
                 boutique = ""
                 clubs = []
                 if "Boutique" in data.columns :
@@ -44,6 +39,8 @@ def addtomap(data,name,color="red",show = False, img="",date ="", icon = "info-s
                         clubs.append(row["Club"])
 
                 city = row["Ville"]
+                date = row["date"]
+                img = ""
                 html=f"""
                 <img src="{img}"> <br>
                 <b>{date} </b><br>
@@ -53,57 +50,23 @@ def addtomap(data,name,color="red",show = False, img="",date ="", icon = "info-s
                 iframe = folium.IFrame(html)
                 popup = folium.Popup(iframe, min_width=200, max_width=300)
                 location=[row["lat"], row["lng"]]
+                color = row["color"]
+                icon_type = icon_dict[row["type"]]
                 folium.Marker(
                 location=location,
                 popup=popup,
-                icon=BeautifyIcon(border_color=color, prefix="fa", icon=icon)
-                ).add_to(feature_group)
+                icon=BeautifyIcon(border_color=color,
+                                  prefix="fa",
+                                  icon=icon_type)
+                ).add_to(m)
 
                 for club in clubs:
                     if club in club_dict.keys():
                         club_loc = club_dict[club]
-                        AntPath([location,club_loc], hardwareAccelerated=True, delay=800).add_to(feature_group)
+                        AntPath([location,club_loc], hardwareAccelerated=True, delay=800).add_to(m)
+    return m
 
-    return feature_group
+m = folium.Map(location = [45.5,6], tiles = "cartodbpositron", zoom_start = 5)
+m = map_df(df)
 
-dainamic_markers = addtomap(
-    data=dainamic_geo,
-    name="DAInamic:12-1986",
-    color="red",
-    show = True,
-    img="https://i.imgur.com/VjoBThG.png",
-    date = "décembre 1986",
-    icon = "user"
-    )
-m.add_child(dainamic_markers)
-
-daiclic_markers = addtomap(
-    data=daiclic_geo,
-    name="DAIclic:12-1986",
-    color="green",
-    img="https://i.imgur.com/QptchDT.png",
-    date="décembre 1986",
-    icon = "user"
-    )
-m.add_child(daiclic_markers)
-
-daiclic2_markers = addtomap(
-    data=daiclic2_geo,
-    name="DAIclic:1988",
-    color="blue",
-    img="https://i.imgur.com/QptchDT.png",
-    date="1988",
-    icon = "user"
-    )
-m.add_child(daiclic2_markers)
-
-revendeurs_markers = addtomap(
-    data=revendeurs_geo,
-    name="Revendeurs",
-    color="orange",
-    img="",
-    date="1981-1982",
-    icon = "shop"
-    )
-m.add_child(revendeurs_markers)
 st_data=folium_static(m, height = 700, width = 800)

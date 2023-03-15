@@ -8,49 +8,32 @@ size=25
 nodes = []
 edges = []
 
-@st.cache_data
-def load_data(files) :
+if "Club" in df.columns.values :
 
-    df_full = pd.DataFrame()
-
-    for file in files:
-        df = pd.read_csv(file)
-        df["table"] = str(file.name)
-        df_full = pd.concat([df_full, df])
-    return df_full
-
-uploaded_files = st.file_uploader("Upload CSV files", type="csv", key='file_uploader', accept_multiple_files=True)
-
-if uploaded_files is not None:
-    df = load_data(uploaded_files).reindex()
-    df['uuid'] = df.apply(lambda _: str(uuid4()), axis=1)
-
-
-st.write(df)
-
-for value in list(df["Club"].unique()):
-    nodes.append( Node(id = str(value),
-                       size = size,
-                       color = "red",
-    ) )
-
-for index, row in df.iterrows():
-    clubs = []
-    if pd.isna(row["Club"]) == False:
-        nodes.append( Node(id=row["uuid"],
-                           size=size
-                           ) )
-        if "/" in str(row["Club"]):
-            clubs = row["Club"].split("/")
-        else:
-            clubs.append(row["Club"])
-        for club in clubs:
-            edges.append( Edge(source=row["uuid"],
-                                label="Member of",
-                                target=club,
-                                )
-                        )
-
+    for value in list(df["Club"].unique()):
+        nodes.append( Node(id = str(value),
+                           size = size,
+                           color = "red",
+        ) )
+    for index, row in df.iterrows():
+        clubs = []
+        row["uuid"] = str(uuid4())
+        if pd.isna(row["Club"]) == False:
+            nodes.append( Node(id=row["uuid"],
+                               size=size
+                               ) )
+            if "/" in str(row["Club"]):
+                clubs = row["Club"].split("/")
+            else:
+                clubs.append(row["Club"])
+            for club in clubs:
+                edges.append( Edge(source=row["uuid"],
+                                    label="Member of",
+                                    target=club,
+                                    )
+                            )
+else :
+    st.markdown("No data to map regarding club affiliation")
 config = Config(width=750,
                 height=950,
                 directed=True,

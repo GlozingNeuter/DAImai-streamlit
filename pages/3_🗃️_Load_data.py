@@ -22,9 +22,8 @@ uploaded_files = st.file_uploader("Upload CSV files", type="csv", key='file_uplo
 
 if uploaded_files is not None:
     df_full = load_data(uploaded_files)
+    st.session_state['df'] = df_full
 
-
+st.session_state
 st.write(df_full)
 
-if 'df' not in st.session_state:
-    st.session_state['df'] = df_full
