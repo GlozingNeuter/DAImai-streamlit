@@ -1,4 +1,4 @@
-folium==0.13
+folium==0.14
 geopy==2.2.0
 numpy==1.21.4
 pandas==1.5.2
