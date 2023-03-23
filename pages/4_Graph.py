@@ -20,8 +20,6 @@ def clubmap(data):
         for index, row in df.iterrows():
             if pd.isna(row["lat"]) == False and pd.isna(row["lng"]) == False:
                 if 35 > int(row["lng"]) > -20 : # Solution temporaire pour éliminer les erreurs de géocodage
-
-<<<<<<< HEAD
                     club = ""
                     row["location"] = [row["lat"], row["lng"]]
                     if "Club" in df.columns.values:
