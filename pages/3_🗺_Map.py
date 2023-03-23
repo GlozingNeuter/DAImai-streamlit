@@ -69,7 +69,7 @@ def map_df(data):
 
 
 m = folium.Map(location=[45.5, 6], tiles="cartodbpositron", zoom_start=5)
-
+st.markdown("### Map of points of interest")
 if hasattr(st.session_state, "df"):
     df = st.session_state.df
     m = map_df(df)

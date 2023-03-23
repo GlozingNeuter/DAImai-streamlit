@@ -20,6 +20,7 @@ def clubmap(data):
         for index, row in df.iterrows():
             if pd.isna(row["lat"]) == False and pd.isna(row["lng"]) == False:
                 if 35 > int(row["lng"]) > -20 : # Solution temporaire pour éliminer les erreurs de géocodage
+
                     club = ""
                     row["location"] = [row["lat"], row["lng"]]
                     if "Club" in df.columns.values:
@@ -31,7 +32,7 @@ def clubmap(data):
         # cleaned_df = df[df["Club"].isin(club_dict.keys())]
         return df_cleaned
 
-st.markdown("### Network of clubs membership")
+st.markdown("### Map of clubs membership")
 
 
 if hasattr(st.session_state, "df"):
@@ -59,42 +60,3 @@ if hasattr(st.session_state, "df"):
             ))
     else:
         st.markdown("No information on club affiliation")
-=======
-                club = ""
-                row["location"] = [row["lat"], row["lng"]]
-                if "Club" in df.columns.values:
-                    club = row["Club"]
-                    if club in club_dict.keys():
-                        row["club_lng"] = float(club_dict[club][1])
-                        row["club_lat"] = float(club_dict[club][0])
-                        df_cleaned = df_cleaned.append(row)
-    # cleaned_df = df[df["Club"].isin(club_dict.keys())]
-    return df_cleaned
-
-
-if hasattr(st.session_state, "df"):
-    df = st.session_state.df
-    df_cleaned = clubmap(df)
-
-    GREEN_RGB = [0, 255, 0, 40]
-    RED_RGB = [240, 100, 0, 40]
-
-    st.pydeck_chart(pdk.Deck(
-        map_style=None,
-        initial_view_state=pdk.ViewState(latitude=45.5, longitude=6, pitch=50, zoom=4,),
-        layers=[pdk.Layer("ArcLayer",
-                          data=df_cleaned[["lng",
-                                           "lat",
-                                           "club_lng",
-                                           "club_lat"]],
-                          get_source_position=["lng", "lat"],
-                          get_target_position=["club_lng", "club_lat"],
-                          get_source_color=RED_RGB,
-                          get_target_color=GREEN_RGB,
-                          get_width=7,
-                          ),
-                ],
-        ))
->>>>>>> origin/main
-else:
-    st.markdown("Load data first to map connections")

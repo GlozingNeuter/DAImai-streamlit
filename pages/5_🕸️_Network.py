@@ -6,6 +6,7 @@ from uuid import uuid4
 size=25
 nodes = []
 edges = []
+st.markdown("### Network of clubs membership")
 if hasattr(st.session_state, "df"):
     df = st.session_state.df
 
