@@ -45,9 +45,12 @@ def clean_db(db):
     db["Adresse_short"] = ""
     for index, row in db.iterrows():
         row["Adresse_short"] = "".join([i for i in str(row["Adresse"])
-                                        .split(" ") if i.isdigit() is False])
+                                        .split(" ") if not i.isdigit()])
     db["Country"] = db["Pays"].map(country)
-    db = db.drop(columns=["Adresse", "Nom"])
+    if "Adresse" in df.columns:
+        db = db.drop(columns="Adresse")
+    if "Nom" in db.columns:
+        db = db.drop(columns="Nom")
     return db
 
 
@@ -57,8 +60,8 @@ def geocode_opencage(data, api_key="13d6984effa44de6b0e21d572f69cab2"):
     Géocode les adresse d'une dataframe avec l'API OpenCage.
     Utilise les séries Adresse_short, Country et en option un série Ville pour ajouter les séries lng et lat.
     """
+    progress_bar = st.progress(0, text="Geocoding in progress...")
     for index, row in data.iterrows():
-        st.progress(text="Geocoding anonymized addresses", value=index)
         geolocator = OpenCage(api_key=api_key)
         geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
         address = row['Adresse_short']
@@ -79,15 +82,20 @@ def geocode_opencage(data, api_key="13d6984effa44de6b0e21d572f69cab2"):
             data.loc[index, 'lng'] = location.longitude
         else:
             print('Not found')
+
+        progress_bar.progress(text="Geocoding anonymized addresses",
+                              value=index+1)
     return data
 
 st.markdown("### Anonymize and geocode data")
-file = st.file_uploader(label="Dataframe to prepare")
 
+file = st.file_uploader(label="Dataframe to prepare")
 if file is not None:
     df = pd.read_csv(file)
-    st.write(clean_db(df))
+    st.dataframe(clean_db(df))
     api = st.text_input(label="OpenCage API key")
     st.button(label="Geocode dataframe",
               on_click=geocode_opencage,
               kwargs={"data": df, "api_key": api})
+else:
+    df = pd.DataFrame()
